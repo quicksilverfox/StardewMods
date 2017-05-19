@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.6
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NewGamePlus", "NewGamePlus\NewGamePlus.csproj", "{0C0ED630-12E8-4830-AB02-EC72F4B9DAC6}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = ".Common", "..\PathoschildMods\Common\.Common.shproj", "{B9E9EDFC-E98A-4370-994F-40A9F39A0284}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmptyHands", "EmptyHands\EmptyHands.csproj", "{C4BEA490-0A36-4307-B5FF-DA5CC007FCD1}"
+EndProject
+Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\PathoschildMods\Common\Common.projitems*{b9e9edfc-e98a-4370-994f-40a9f39a0284}*SharedItemsImports = 13
+		..\PathoschildMods\Common\Common.projitems*{c4bea490-0a36-4307-b5ff-da5cc007fcd1}*SharedItemsImports = 4
+	EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0C0ED630-12E8-4830-AB02-EC72F4B9DAC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0C0ED630-12E8-4830-AB02-EC72F4B9DAC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0C0ED630-12E8-4830-AB02-EC72F4B9DAC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0C0ED630-12E8-4830-AB02-EC72F4B9DAC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4BEA490-0A36-4307-B5FF-DA5CC007FCD1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4BEA490-0A36-4307-B5FF-DA5CC007FCD1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4BEA490-0A36-4307-B5FF-DA5CC007FCD1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4BEA490-0A36-4307-B5FF-DA5CC007FCD1}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
