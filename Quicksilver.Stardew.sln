@@ -11,6 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmptyHands", "EmptyHands\Em
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\PathoschildMods\Common\Common.projitems*{0c0ed630-12e8-4830-ab02-ec72f4b9dac6}*SharedItemsImports = 4
 		..\PathoschildMods\Common\Common.projitems*{b9e9edfc-e98a-4370-994f-40a9f39a0284}*SharedItemsImports = 13
 		..\PathoschildMods\Common\Common.projitems*{c4bea490-0a36-4307-b5ff-da5cc007fcd1}*SharedItemsImports = 4
 	EndGlobalSection

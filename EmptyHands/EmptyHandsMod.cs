@@ -26,25 +26,11 @@ namespace EmptyHands
         public override void Entry(IModHelper helper)
         {
             this.Config = helper.ReadConfig<RawModConfig>().GetParsed(this.Monitor);
-
-            GameEvents.GameLoaded += this.GameEvents_GameLoaded;
+            
             ControlEvents.KeyPressed += this.ControlEvents_KeyPressed;
             ControlEvents.ControllerButtonPressed += this.ControlEvents_ControllerButtonPressed;
             ControlEvents.ControllerTriggerPressed += this.ControlEvents_ControllerTriggerPressed;
-        }
 
-
-        /*********
-        ** Private methods
-        *********/
-        /****
-        ** Event handlers
-        ****/
-        /// <summary>The method invoked when the player loads the game.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event arguments.</param>
-        private void GameEvents_GameLoaded(object sender, EventArgs e)
-        {
             // check for an updated version
             if (this.Config.CheckForUpdates)
             {
@@ -54,6 +40,14 @@ namespace EmptyHands
                 });
             }
         }
+
+
+        /*********
+        ** Private methods
+        *********/
+        /****
+        ** Event handlers
+        ****/
 
         /// <summary>The method invoked when the player presses a keyboard button.</summary>
         /// <param name="sender">The event sender.</param>

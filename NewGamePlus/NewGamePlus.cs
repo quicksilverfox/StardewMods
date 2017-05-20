@@ -28,31 +28,7 @@ namespace NewGamePlus
             ModConfig = helper.ReadConfig<NewGamePlusConfig>();
 
             RegisterGameEvents();
-        }
 
-        #region Events
-        /// <summary> Registers event handlers for mod functions. </summary>
-        private void RegisterGameEvents()
-        {
-            //Monitor.Log("Registering game events...", LogLevel.Trace);
-
-            GameEvents.GameLoaded += this.GameEvents_GameLoaded;
-
-            TimeEvents.AfterDayStarted += AwardPlayer; // When game is loaded, check if something is missing.
-            TimeEvents.AfterDayStarted += SaveAwards; // Save achievements upon load, this way load and quit would be enough to update awards.
-            TimeEvents.AfterDayStarted += TravelingMerchantBonus; // If junimo way is done, travelling merchant always have at least one item required for community center
-
-            SaveEvents.AfterSave += SaveAwards; // When day is saved, save achievements.
-
-            MenuEvents.MenuClosed += MenuClosed; // Level up menu neds fix to work correctly with this.
-            //Monitor.Log("Game events registered.", LogLevel.Trace);
-        }
-
-        /// <summary>The method invoked when the player loads the game.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event arguments.</param>
-        private void GameEvents_GameLoaded(object sender, EventArgs e)
-        {
             // check for an updated version
             if (ModConfig.GetConfig("CheckForUpdates"))
             {
@@ -61,6 +37,23 @@ namespace NewGamePlus
                     UpdateHelper.LogVersionCheck(this.Monitor, this.ModManifest.Version, "NewGamePlus").Wait();
                 });
             }
+        }
+
+        #region Events
+        /// <summary> Registers event handlers for mod functions. </summary>
+        private void RegisterGameEvents()
+        {
+            //Monitor.Log("Registering game events...", LogLevel.Trace);
+
+            TimeEvents.AfterDayStarted += AwardPlayer; // When game is loaded, check if something is missing.
+            TimeEvents.AfterDayStarted += SaveAwards; // Save achievements upon load, this way load and quit would be enough to update awards.
+            TimeEvents.AfterDayStarted += TravelingMerchantBonus; // If junimo way is done, travelling merchant always have at least one item required for community center
+
+            SaveEvents.AfterSave += SaveAwards; // When day is saved, save achievements.
+
+            MenuEvents.MenuClosed += MenuClosed; // Level up menu neds fix to work correctly with this.
+
+            //Monitor.Log("Game events registered.", LogLevel.Trace);
         }
 
         /// <summary> If player has finished junimo way of refurbishing the Community Center, at future playthroughs Travelling Merchant would always have at least one item fitting for some bundle, if any. </summary>
@@ -109,14 +102,16 @@ namespace NewGamePlus
         /// <summary>Check what player is missing.</summary>
         private void AwardPlayer(object sender, EventArgs args)
         {
+            if (Game1.stats.DaysPlayed == 0) return; // freshly created game before init cutscene - it would be called once again afterwards
+
             if (ModConfig.GetConfig("professions")) AwardProfessions();
             if (ModConfig.GetConfig("stardrops")) AwardStardrops();
             if (ModConfig.GetConfig("crafting_recipes")) AwardCraftingRecipes();
             if (ModConfig.GetConfig("cooking_recipes")) AwardCookingRecipes();
             if (ModConfig.GetConfig("experience")) AwardExperience();
-
+            
             // Some bonuses only can be granted on a new game start. Mostly matherial rewards.
-            if (Game1.stats.DaysPlayed <= 1)
+            if (Game1.stats.DaysPlayed == 1)
                 AwardNewGame();
         }
 
