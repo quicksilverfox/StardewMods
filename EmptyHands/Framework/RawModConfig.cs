@@ -49,8 +49,7 @@ namespace Pathoschild.Stardew.EmptyHands.Framework
                 Controller = new InputMapConfiguration<Buttons>
                 {
                     SetToNothing = this.TryParse<Buttons>(monitor, this.Controller.SetToNothing)
-                },
-                CheckForUpdates = this.CheckForUpdates,
+                }
             };
         }
 

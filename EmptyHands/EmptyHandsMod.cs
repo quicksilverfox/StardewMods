@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Pathoschild.Stardew.Common;
 using Pathoschild.Stardew.EmptyHands.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -30,15 +28,6 @@ namespace EmptyHands
             ControlEvents.KeyPressed += this.ControlEvents_KeyPressed;
             ControlEvents.ControllerButtonPressed += this.ControlEvents_ControllerButtonPressed;
             ControlEvents.ControllerTriggerPressed += this.ControlEvents_ControllerTriggerPressed;
-
-            // check for an updated version
-            if (this.Config.CheckForUpdates)
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    UpdateHelper.LogVersionCheck(this.Monitor, this.ModManifest.Version, "EmptyHands").Wait();
-                });
-            }
         }
 
 

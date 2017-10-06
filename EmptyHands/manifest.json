@@ -9,5 +9,6 @@
   },
   "Description": "Don't want to scare off people by swinging your scythe under their noses? Keep your hands empty!",
   "UniqueID": "QuicksilverFox.EmptyHands",
-  "EntryDll": "EmptyHands.dll"
+  "EntryDll": "EmptyHands.dll",
+  "UpdateKeys": [ "Nexus:1176" ]
 }
