@@ -95,11 +95,16 @@ namespace EmptyHands
                 return;
 
             // perform bound action
-            this.Monitor.InterceptErrors("handling your input", $"handling input '{key}'", () =>
+            try
             {
                 if (key.Equals(map.SetToNothing))
                     this.UnsetActiveItem();
-            });
+            }
+            catch (Exception ex)
+            {
+                this.Monitor.Log($"Something went wrong handling input '{key}':\n{ex}", LogLevel.Error);
+                Game1.addHUDMessage(new HUDMessage("Huh. Something went wrong handling your input. The error log has the technical details.", HUDMessage.error_type));
+            }
         }
 
         /// <summary>Sets active item to an impossible value.</summary>
