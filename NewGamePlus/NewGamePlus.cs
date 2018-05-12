@@ -160,8 +160,8 @@ namespace NewGamePlus
             {
                 if (!Game1.player.professions.Contains(profession) &&
                     (profession % 6 > 1
-                        || Game1.player.getEffectiveSkillLevel(Professions.GetSkillForProfession(profession)) >= 10)
-                        || Professions.HasAllProfessionsForSkill(Game1.player, Professions.GetSkillForProfession(profession))) // only award first professions after second, due to UI limitations
+                        || Game1.player.getEffectiveSkillLevel(Professions.GetSkillForProfession(profession)) >= 10
+                        || Professions.HasAllProfessionsForSkill(Game1.player, Professions.GetSkillForProfession(profession)))) // only award first professions after second, due to UI limitations
                 {
                     Game1.player.professions.Add(profession);
 
@@ -174,6 +174,7 @@ namespace NewGamePlus
                     {
                         Game1.player.maxHealth += 25;
                     }
+                    Game1.player.health = Game1.player.maxHealth;
                     Monitor.Log("Awarding profession: " + profession, LogLevel.Trace);
                 }
             }
@@ -230,6 +231,12 @@ namespace NewGamePlus
                 {
                     Game1.player.mailReceived.Add(stardrop);
                     Game1.player.MaxStamina += 34;
+
+                    if (stardrop.Equals("CF_Statue"))
+                    {
+                        (Game1.getLocationFromName("Woods") as Woods).hasUnlockedStatue = true;
+                        (Game1.getLocationFromName("Woods") as Woods).hasFoundStardrop = true;
+                    }
                 }
             }
 
