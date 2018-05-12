@@ -46,46 +46,47 @@ namespace NewGamePlus
         }
 
         /// <summary> If player has finished junimo way of refurbishing the Community Center, at future playthroughs Travelling Merchant would always have at least one item fitting for some bundle, if any. </summary>
+        // Due to network nature this way does not work anymore.
         private void TravelingMerchantBonus(object sender, EventArgs args)
         {
-            if (!ModConfig.GetFlagBoolean("ccJunimo") || Game1.player.mailReceived.Contains("JojaMember")) return; // requires full cc completeon record and not being a joja member
-            if ((Game1.getLocationFromName("Forest") as Forest).travelingMerchantStock == null) return; // merchant is away
-            CommunityCenter communityCenter = Game1.getLocationFromName("CommunityCenter") as CommunityCenter;
-            if (communityCenter.areAllAreasComplete()) return; // cc is completed
+            //if (!ModConfig.GetFlagBoolean("ccJunimo") || Game1.player.mailReceived.Contains("JojaMember")) return; // requires full cc completeon record and not being a joja member
+            //if (!(Game1.getLocationFromName("Forest") as Forest).travelingMerchantDay) return; // merchant is away
+            //CommunityCenter communityCenter = Game1.getLocationFromName("CommunityCenter") as CommunityCenter;
+            //if (communityCenter.areAllAreasComplete()) return; // cc is completed
 
-            // format:
-            // key: Pantry/0 
-            // (area_name)/(area_id)
-            // value: Spring Crops/O 465 20/24 1 0 188 1 0 190 1 0 192 1 0/0
-            // (bundle_name)/(? reward_id reward_amount)/([[item_id amount quality][...]])/(?)
-            List<int> neededItems = new List<int>();
-            Dictionary<string, string> dictionary = Game1.content.Load<Dictionary<string, string>>("Data\\Bundles");
-            foreach (KeyValuePair<string, string> KeyValue in dictionary)
-            {
-                int area_id = Convert.ToInt32(KeyValue.Key.Split('/')[1]);
-                string[] items = KeyValue.Value.Split('/')[2].Split(' ');
-                for (int itm = 0; itm < items.Length / 3; itm++)
-                {
-                    int item_id = Convert.ToInt32(items[itm * 3]);
-                    if (item_id > 0 && Game1.objectInformation.ContainsKey(item_id) && items[itm * 3 + 2] == "0" && !communityCenter.bundles[area_id][itm])
-                    {
-                        neededItems.Add(item_id);
-                    }
-                }
-            }
-            Monitor.Log($"Found {neededItems.Count} items required for bundles...", LogLevel.Trace);
-            if (neededItems.Count > 0)
-            {
-                Random r = new Random((int)((long)Game1.uniqueIDForThisGame + (long)Game1.stats.DaysPlayed));
-                int item_id = neededItems[r.Next(neededItems.Count)];
-                string[] itemInfo = Game1.objectInformation[item_id].Split('/');
-                Monitor.Log($"Adding {itemInfo[0]} to Travelling Merchant stock.", LogLevel.Trace);
-                (Game1.getLocationFromName("Forest") as Forest).travelingMerchantStock.Add((Item)new StardewValley.Object(item_id, 1, false, -1, 0), new int[2]
-                    {
-                      Math.Max(r.Next(1, 11) * 100, Convert.ToInt32(itemInfo[1]) * r.Next(3, 6)),
-                      r.NextDouble() < 0.1 ? 5 : 1
-                    });
-            }
+            //// format:
+            //// key: Pantry/0 
+            //// (area_name)/(area_id)
+            //// value: Spring Crops/O 465 20/24 1 0 188 1 0 190 1 0 192 1 0/0
+            //// (bundle_name)/(? reward_id reward_amount)/([[item_id amount quality][...]])/(?)
+            //List<int> neededItems = new List<int>();
+            //Dictionary<string, string> dictionary = Game1.content.Load<Dictionary<string, string>>("Data\\Bundles");
+            //foreach (KeyValuePair<string, string> KeyValue in dictionary)
+            //{
+            //    int area_id = Convert.ToInt32(KeyValue.Key.Split('/')[1]);
+            //    string[] items = KeyValue.Value.Split('/')[2].Split(' ');
+            //    for (int itm = 0; itm < items.Length / 3; itm++)
+            //    {
+            //        int item_id = Convert.ToInt32(items[itm * 3]);
+            //        if (item_id > 0 && Game1.objectInformation.ContainsKey(item_id) && items[itm * 3 + 2] == "0" && !communityCenter.bundles[area_id][itm])
+            //        {
+            //            neededItems.Add(item_id);
+            //        }
+            //    }
+            //}
+            //Monitor.Log($"Found {neededItems.Count} items required for bundles...", LogLevel.Trace);
+            //if (neededItems.Count > 0)
+            //{
+            //    Random r = new Random((int)((long)Game1.uniqueIDForThisGame + (long)Game1.stats.DaysPlayed));
+            //    int item_id = neededItems[r.Next(neededItems.Count)];
+            //    string[] itemInfo = Game1.objectInformation[item_id].Split('/');
+            //    Monitor.Log($"Adding {itemInfo[0]} to Travelling Merchant stock.", LogLevel.Trace);
+            //    (Game1.getLocationFromName("Forest") as Forest).travelingMerchantStock.Add((Item)new StardewValley.Object(item_id, 1, false, -1, 0), new int[2]
+            //        {
+            //          Math.Max(r.Next(1, 11) * 100, Convert.ToInt32(itemInfo[1]) * r.Next(3, 6)),
+            //          r.NextDouble() < 0.1 ? 5 : 1
+            //        });
+            //}
         }
 
         /// <summary>Check what player is missing.</summary>
@@ -113,7 +114,7 @@ namespace NewGamePlus
             SaveCookingRecipes();
             SaveExperience();
 
-            if (Helper.Reflection.GetPrivateMethod((Game1.getLocationFromName("Town") as Town), "checkJojaCompletePrerequisite").Invoke<Boolean>()) ModConfig.SetFlag("ccJoja", true);
+            if (Helper.Reflection.GetMethod((Game1.getLocationFromName("Town") as Town), "checkJojaCompletePrerequisite").Invoke<Boolean>()) ModConfig.SetFlag("ccJoja", true);
             if (Game1.player.hasCompletedCommunityCenter()) ModConfig.SetFlag("ccJunimo", true);
 
             ModConfig.SetFlagIfGreater("grandpaScore", (Game1.getLocationFromName("Farm") as Farm).grandpaScore);
@@ -209,7 +210,7 @@ namespace NewGamePlus
 
         #region Stardrops
         /// <summary>List of all game stardrops.</summary>
-        private static String[] Stardrops { get; } = new String[] { "CF_Fair", "CF_Mines", "CF_Spouse", "CF_Sewer", "CF_Statue", "CF_Fish", "museumComplete" };
+        private static String[] Stardrops { get; } = new String[] { "CF_Fair", "CF_Fish", "CF_Mines", "CF_Sewer", "museumComplete", "CF_Spouse", "CF_Statue" };
 
         /// <summary>Give all known stardrops.</summary>
         private void AwardStardrops()
@@ -220,12 +221,6 @@ namespace NewGamePlus
                 {
                     Game1.player.mailReceived.Add(stardrop);
                     Game1.player.MaxStamina += 34;
-
-                    if (stardrop.Equals("CF_Statue"))
-                    {
-                        (Game1.getLocationFromName("Woods") as Woods).hasUnlockedStatue = true;
-                        (Game1.getLocationFromName("Woods") as Woods).hasFoundStardrop = true;
-                    }
                 }
             }
 
@@ -308,13 +303,13 @@ namespace NewGamePlus
                 {
                     UpgradeTool("Watering Can");
                     UpgradeTool("Hoe");
-                    Monitor.Log("Local Legend: Awarding farming tools upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("Local Legend: Awarding a farming tools upgrade for a new game.", LogLevel.Info);
                 }
                 if (ModConfig.GetFlagBoolean("ccJoja"))
                 {
                     UpgradeTool("Axe");
                     UpgradeTool("Pickaxe");
-                    Monitor.Log("Joja Co. Member Of The Year: Awarding gathering tools upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("Joja Co. Member Of The Year: Awarding a gathering tools upgrade for a new game.", LogLevel.Info);
                 }
                 if (ModConfig.GetFlagBoolean("fullShipment"))
                 {
@@ -338,21 +333,21 @@ namespace NewGamePlus
                     Game1.player.addItemToInventory((Item)new StardewValley.Object(631, 1));
                     Game1.player.addItemToInventory((Item)new StardewValley.Object(632, 1));
                     Game1.player.addItemToInventory((Item)new StardewValley.Object(633, 1));
-                    Monitor.Log("Perfection: Awarding set of the tree saplings for a new game.", LogLevel.Info);
+                    Monitor.Log("Perfection: Awarding a set of the tree saplings for a new game.", LogLevel.Info);
                 }
                 // Burglar's Ring for "Qi's Challenge"
                 if (ModConfig.GetFlagBoolean("QiChallengeComplete"))
                 {
-                    Game1.player.leftRing = new Ring(526);
-                    Game1.player.leftRing.onEquip(Game1.player);
-                    Monitor.Log("Qi's Challenge: Awarding Burglar's Ring for a new game.", LogLevel.Info);
+                    Game1.player.leftRing.Value = new Ring(526);
+                    Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
+                    Monitor.Log("Qi's Challenge: Awarding the Burglar's Ring for a new game.", LogLevel.Info);
                 }
                 // Iridium Band for "Protector Of The Valley"
                 if (ModConfig.GetFlagBoolean("areAllMonsterSlayerQuestsComplete"))
                 {
-                    Game1.player.rightRing = new Ring(527);
-                    Game1.player.rightRing.onEquip(Game1.player);
-                    Monitor.Log("Protector Of The Valley: Awarding Iridium Band for a new game.", LogLevel.Info);
+                    Game1.player.leftRing.Value = new Ring(527);
+                    Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
+                    Monitor.Log("Protector Of The Valley: Awarding the Iridium Band for a new game.", LogLevel.Info);
                 }
                 // TODO:
                 // Bonus 2 starting hearts with everyone for "Popular"?
@@ -363,7 +358,7 @@ namespace NewGamePlus
 
         private void UpgradeTool(string tool)
         {
-            Game1.player.getToolFromName(tool).upgradeLevel++;
+            Game1.player.getToolFromName(tool).UpgradeLevel++;
             Game1.player.getToolFromName(tool).setNewTileIndexForUpgradeLevel();
         }
         #endregion
