@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
-using Pathoschild.Stardew.Common;
 using Pathoschild.Stardew.EmptyHands.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
@@ -30,15 +28,6 @@ namespace EmptyHands
             ControlEvents.KeyPressed += this.ControlEvents_KeyPressed;
             ControlEvents.ControllerButtonPressed += this.ControlEvents_ControllerButtonPressed;
             ControlEvents.ControllerTriggerPressed += this.ControlEvents_ControllerTriggerPressed;
-
-            // check for an updated version
-            if (this.Config.CheckForUpdates)
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    UpdateHelper.LogVersionCheck(this.Monitor, this.ModManifest.Version, "EmptyHands").Wait();
-                });
-            }
         }
 
 
@@ -95,11 +84,16 @@ namespace EmptyHands
                 return;
 
             // perform bound action
-            this.Monitor.InterceptErrors("handling your input", $"handling input '{key}'", () =>
+            try
             {
                 if (key.Equals(map.SetToNothing))
                     this.UnsetActiveItem();
-            });
+            }
+            catch (Exception ex)
+            {
+                this.Monitor.Log($"Something went wrong handling input '{key}':\n{ex}", LogLevel.Error);
+                Game1.addHUDMessage(new HUDMessage("Huh. Something went wrong handling your input. The error log has the technical details.", HUDMessage.error_type));
+            }
         }
 
         /// <summary>Sets active item to an impossible value.</summary>

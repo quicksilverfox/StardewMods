@@ -9,5 +9,6 @@
   },
   "Description": "Stuck in a groundhog day loop? You should at least learn from it.",
   "UniqueID": "QuicksilverFox.NewGamePlus",
-  "EntryDll": "NewGamePlus.dll"
+  "EntryDll": "NewGamePlus.dll",
+  "UpdateKeys": [ ]
 }
