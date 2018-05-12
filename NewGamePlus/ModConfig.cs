@@ -10,7 +10,6 @@ namespace NewGamePlus
     {
         public Dictionary<string, bool> config = new Dictionary<string, bool>()
         {
-            ["CheckForUpdates"] = true,
             ["professions"] = true,
             ["experience"] = false,
             ["stardrops"] = true,

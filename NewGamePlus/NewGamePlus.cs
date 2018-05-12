@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -8,7 +7,6 @@ using StardewValley.Menus;
 using StardewValley.Objects;
 using StardewValley.Locations;
 using NewGamePlus.Util;
-using Pathoschild.Stardew.Common;
 
 namespace NewGamePlus
 {
@@ -28,15 +26,6 @@ namespace NewGamePlus
             ModConfig = helper.ReadConfig<NewGamePlusConfig>();
 
             RegisterGameEvents();
-
-            // check for an updated version
-            if (ModConfig.GetConfig("CheckForUpdates"))
-            {
-                Task.Factory.StartNew(() =>
-                {
-                    UpdateHelper.LogVersionCheck(this.Monitor, this.ModManifest.Version, "NewGamePlus").Wait();
-                });
-            }
         }
 
         #region Events
