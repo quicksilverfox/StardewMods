@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework.Input;
+using StardewModdingAPI;
 
 namespace Pathoschild.Stardew.EmptyHands.Framework
 {
@@ -9,9 +10,9 @@ namespace Pathoschild.Stardew.EmptyHands.Framework
         ** Accessors
         *********/
         /// <summary>The keyboard input map.</summary>
-        public InputMapConfiguration<Keys> Keyboard { get; set; }
+        public InputMapConfiguration<SButton> Keyboard { get; set; }
 
         /// <summary>The controller input map.</summary>
-        public InputMapConfiguration<Buttons> Controller { get; set; }
+        public InputMapConfiguration<SButton> Controller { get; set; }
     }
 }

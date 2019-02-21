@@ -26,7 +26,7 @@ namespace Pathoschild.Stardew.EmptyHands.Framework
         /// <summary>Get whether any keys are configured.</summary>
         public bool HasAny()
         {
-            return new[] { this.SetToNothing }.Any(this.IsValidKey);
+            return new[] { SetToNothing }.Any(IsValidKey);
         }
     }
 }

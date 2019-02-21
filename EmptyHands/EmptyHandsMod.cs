@@ -23,11 +23,13 @@ namespace EmptyHands
         /// <param name="helper">Provides methods for interacting with the mod directory, such as read/writing a config file or custom JSON files.</param>
         public override void Entry(IModHelper helper)
         {
-            this.Config = helper.ReadConfig<RawModConfig>().GetParsed(this.Monitor);
-            
+            Config = helper.ReadConfig<RawModConfig>().GetParsed(Monitor);
+
+            helper.Events.Input.ButtonPressed += ControlEvents_KeyPressed;
+            /*
             ControlEvents.KeyPressed += this.ControlEvents_KeyPressed;
             ControlEvents.ControllerButtonPressed += this.ControlEvents_ControllerButtonPressed;
-            ControlEvents.ControllerTriggerPressed += this.ControlEvents_ControllerTriggerPressed;
+            ControlEvents.ControllerTriggerPressed += this.ControlEvents_ControllerTriggerPressed;*/
         }
 
 
@@ -41,44 +43,44 @@ namespace EmptyHands
         /// <summary>The method invoked when the player presses a keyboard button.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        private void ControlEvents_KeyPressed(object sender, EventArgsKeyPressed e)
+        private void ControlEvents_KeyPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Game1.hasLoadedGame)
                 return;
 
-            this.ReceiveKeyPress(e.KeyPressed, this.Config.Keyboard);
+            ReceiveKeyPress(e.Button, Config.Keyboard);
         }
 
         /// <summary>The method invoked when the player presses a controller button.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        private void ControlEvents_ControllerTriggerPressed(object sender, EventArgsControllerTriggerPressed e)
+        private void ControlEvents_ControllerTriggerPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Game1.hasLoadedGame)
                 return;
 
-            this.ReceiveKeyPress(e.ButtonPressed, this.Config.Controller);
+            ReceiveKeyPress(e.Button, Config.Controller);
         }
 
         /// <summary>The method invoked when the player presses a controller trigger button.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        private void ControlEvents_ControllerButtonPressed(object sender, EventArgsControllerButtonPressed e)
+        private void ControlEvents_ControllerButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Game1.hasLoadedGame)
                 return;
 
-            this.ReceiveKeyPress(e.ButtonPressed, this.Config.Controller);
+            ReceiveKeyPress(e.Button, Config.Controller);
         }
 
         /****
         ** Methods
         ****/
         /// <summary>The method invoked when the player presses an input button.</summary>
-        /// <typeparam name="TKey">The input type.</typeparam>
+        /// <typeparam name="TSButton"></typeparam>
         /// <param name="key">The pressed input.</param>
         /// <param name="map">The configured input mapping.</param>
-        private void ReceiveKeyPress<TKey>(TKey key, InputMapConfiguration<TKey> map)
+        private void ReceiveKeyPress<TSButton>(TSButton key, InputMapConfiguration<TSButton> map)
         {
             if (!map.IsValidKey(key))
                 return;
@@ -87,11 +89,11 @@ namespace EmptyHands
             try
             {
                 if (key.Equals(map.SetToNothing))
-                    this.UnsetActiveItem();
+                    UnsetActiveItem();
             }
             catch (Exception ex)
             {
-                this.Monitor.Log($"Something went wrong handling input '{key}':\n{ex}", LogLevel.Error);
+                Monitor.Log($"Something went wrong handling input '{key}':\n{ex}", LogLevel.Error);
                 Game1.addHUDMessage(new HUDMessage("Huh. Something went wrong handling your input. The error log has the technical details.", HUDMessage.error_type));
             }
         }
