@@ -16,9 +16,6 @@ namespace Pathoschild.Stardew.EmptyHands.Framework
         /// <summary>The controller input map.</summary>
         public InputMapConfiguration<string> Controller { get; set; }
 
-        /// <summary>Whether to check for updates to the mod.</summary>
-        public bool CheckForUpdates { get; set; } = true;
-
 
         /*********
         ** Public methods
