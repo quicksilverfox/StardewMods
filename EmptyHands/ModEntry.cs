@@ -6,7 +6,7 @@ using StardewValley;
 
 namespace EmptyHands
 {
-    /// <summary>The mod entry point.</summary>
+    /// <summary>The mod entry class.</summary>
     public class ModEntry : Mod
     {
         /*********
@@ -20,7 +20,7 @@ namespace EmptyHands
         ** Public methods
         *********/
         /// <summary>The mod entry point, called after the mod is first loaded.</summary>
-        /// <param name="helper">Provides methods for interacting with the mod directory, such as read/writing a config file or custom JSON files.</param>
+        /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
             Config = helper.ReadConfig<RawModConfig>().GetParsed(Monitor);
@@ -32,10 +32,6 @@ namespace EmptyHands
         /*********
         ** Private methods
         *********/
-        /****
-        ** Event handlers
-        ****/
-
         /// <summary>The method invoked when the player presses a keyboard button.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
@@ -48,10 +44,6 @@ namespace EmptyHands
                 ReceiveKeyPress(e.Button, Config.Controller);
         }
 
-
-        /****
-        ** Methods
-        ****/
         /// <summary>The method invoked when the player presses an input button.</summary>
         /// <typeparam name="TSButton"></typeparam>
         /// <param name="key">The pressed input.</param>

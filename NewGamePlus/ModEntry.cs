@@ -10,39 +10,74 @@ using StardewValley.Objects;
 
 namespace NewGamePlus
 {
+    /// <summary>The mod entry class.</summary>
     public class ModEntry : Mod
     {
         /*********
         ** Fields
         *********/
+        /// <summary>The mod configuration.</summary>
         private ModConfig Config;
 
 
         /*********
         ** Public methods
         *********/
-        /// <summary>Initialise the mod.</summary>
-        /// <param name="helper">Provides methods for interacting with the mod directory, such as read/writing a config file or custom JSON files.</param>
+        /// <summary>The mod entry point, called after the mod is first loaded.</summary>
+        /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
             Config = helper.ReadConfig<ModConfig>();
 
-            TimeEvents.AfterDayStarted += AwardPlayer; // When game is loaded, check if something is missing.
-            TimeEvents.AfterDayStarted += SaveAwards; // Save achievements upon load, this way load and quit would be enough to update awards.
-            TimeEvents.AfterDayStarted += TravelingMerchantBonus; // If junimo way is done, travelling merchant always have at least one item required for community center
-
-            SaveEvents.AfterSave += SaveAwards; // When day is saved, save achievements.
-
-            MenuEvents.MenuClosed += MenuClosed; // Level up menu neds fix to work correctly with this.
+            helper.Events.GameLoop.DayStarted += OnDayStarted;
+            helper.Events.GameLoop.Saved += OnSaved;
+            helper.Events.Display.MenuChanged += OnMenuChanged;
         }
+
 
         /*********
         ** Private methods
         *********/
         #region Events
+        /// <summary>Raised after the game begins a new day (including when the player loads a save).</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnDayStarted(object sender, DayStartedEventArgs e)
+        {
+            this.AwardPlayer(); // check if something is missing
+            this.SaveAwards(); // save achievements on load, so load & quit is enough to update awards
+            this.TravelingMerchantBonus(); // if junimo way is done, travelling merchant always have at least one item required for community center
+        }
+
+        /// <summary>Raised after the game finishes writing data to the save file (except the initial save creation).</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnSaved(object sender, SavedEventArgs e)
+        {
+            this.SaveAwards(); // When day is saved, save achievements.
+        }
+
+        /// <summary>Raised after a game menu is opened, closed, or replaced.</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnMenuChanged(object sender, MenuChangedEventArgs e)
+        {
+            // clean up possible duplicate professions, since we don't filter what player can pick up
+            if (e.OldMenu is LevelUpMenu && e.NewMenu == null)
+            {
+                List<int> cleaned = new List<int>();
+                foreach (int profession in Game1.player.professions)
+                {
+                    if (!cleaned.Contains(profession))
+                        cleaned.Add(profession);
+                }
+                Game1.player.professions.Set(cleaned);
+            }
+        }
+
         /// <summary> If player has finished junimo way of refurbishing the Community Center, at future playthroughs Travelling Merchant would always have at least one item fitting for some bundle, if any. </summary>
         // Due to network nature this way does not work anymore.
-        private void TravelingMerchantBonus(object sender, EventArgs args)
+        private void TravelingMerchantBonus()
         {
             //if (!Config.GetFlagBoolean("ccJunimo") || Game1.player.mailReceived.Contains("JojaMember")) return; // requires full cc completeon record and not being a joja member
             //if (!(Game1.getLocationFromName("Forest") as Forest).travelingMerchantDay) return; // merchant is away
@@ -85,7 +120,7 @@ namespace NewGamePlus
         }
 
         /// <summary>Check what player is missing.</summary>
-        private void AwardPlayer(object sender, EventArgs args)
+        private void AwardPlayer()
         {
             if (Game1.stats.DaysPlayed == 0) return; // freshly created game before init cutscene - it would be called once again afterwards
 
@@ -101,7 +136,7 @@ namespace NewGamePlus
         }
 
         /// <summary>Update known achievements and save them into config.</summary>
-        private void SaveAwards(object sender, EventArgs args)
+        private void SaveAwards()
         {
             SaveProfessions();
             SaveStardrops();
@@ -119,21 +154,6 @@ namespace NewGamePlus
             if (AdventureGuild.areAllMonsterSlayerQuestsComplete()) Config.SetFlag("areAllMonsterSlayerQuestsComplete", true);
 
             Helper.WriteConfig(Config);
-        }
-
-        /// <summary>Clean up possible duplicate professions, since we don't filter what player can pick up.</summary>
-        private void MenuClosed(object sender, EventArgsClickableMenuClosed args)
-        {
-            if (args.PriorMenu is LevelUpMenu)
-            {
-                List<int> cleaned = new List<int>();
-                foreach (int profession in Game1.player.professions)
-                {
-                    if (!cleaned.Contains(profession))
-                        cleaned.Add(profession);
-                }
-                Game1.player.professions = cleaned;
-            }
         }
         #endregion
 
@@ -155,7 +175,7 @@ namespace NewGamePlus
                         Game1.player.maxHealth += 15;
                     if (profession == Farmer.defender)
                         Game1.player.maxHealth += 25;
-                    
+
                     Game1.player.health = Game1.player.maxHealth;
                     Monitor.Log("Awarding profession: " + profession, LogLevel.Trace);
                 }
