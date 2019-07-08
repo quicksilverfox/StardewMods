@@ -7,7 +7,7 @@ using StardewValley;
 namespace EmptyHands
 {
     /// <summary>The mod entry point.</summary>
-    public class EmptyHandsMod : Mod
+    public class ModEntry : Mod
     {
         /*********
         ** Properties

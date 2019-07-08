@@ -10,7 +10,7 @@ using NewGamePlus.Util;
 
 namespace NewGamePlus
 {
-    public class NewGamePlus : Mod
+    public class ModEntry : Mod
     {
         public static new IModHelper Helper;
         public static NewGamePlusConfig ModConfig { get; private set; }
