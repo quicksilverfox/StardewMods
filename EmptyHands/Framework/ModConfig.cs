@@ -1,7 +1,6 @@
-using Microsoft.Xna.Framework.Input;
 using StardewModdingAPI;
 
-namespace Pathoschild.Stardew.EmptyHands.Framework
+namespace EmptyHands.Framework
 {
     /// <summary>The mod configuration.</summary>
     internal class ModConfig

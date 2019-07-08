@@ -1,5 +1,5 @@
 ﻿using System;
-using Pathoschild.Stardew.EmptyHands.Framework;
+using EmptyHands.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
@@ -10,7 +10,7 @@ namespace EmptyHands
     public class ModEntry : Mod
     {
         /*********
-        ** Properties
+        ** Fields
         *********/
         /// <summary>The mod configuration.</summary>
         private ModConfig Config;
@@ -25,11 +25,7 @@ namespace EmptyHands
         {
             Config = helper.ReadConfig<RawModConfig>().GetParsed(Monitor);
 
-            helper.Events.Input.ButtonPressed += ControlEvents_KeyPressed;
-            /*
-            ControlEvents.KeyPressed += this.ControlEvents_KeyPressed;
-            ControlEvents.ControllerButtonPressed += this.ControlEvents_ControllerButtonPressed;
-            ControlEvents.ControllerTriggerPressed += this.ControlEvents_ControllerTriggerPressed;*/
+            helper.Events.Input.ButtonPressed += OnButtonPressed;
         }
 
 
@@ -43,35 +39,15 @@ namespace EmptyHands
         /// <summary>The method invoked when the player presses a keyboard button.</summary>
         /// <param name="sender">The event sender.</param>
         /// <param name="e">The event arguments.</param>
-        private void ControlEvents_KeyPressed(object sender, ButtonPressedEventArgs e)
+        private void OnButtonPressed(object sender, ButtonPressedEventArgs e)
         {
             if (!Game1.hasLoadedGame)
                 return;
 
-            ReceiveKeyPress(e.Button, Config.Keyboard);
+            if (!ReceiveKeyPress(e.Button, Config.Keyboard))
+                ReceiveKeyPress(e.Button, Config.Controller);
         }
 
-        /// <summary>The method invoked when the player presses a controller button.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event arguments.</param>
-        private void ControlEvents_ControllerTriggerPressed(object sender, ButtonPressedEventArgs e)
-        {
-            if (!Game1.hasLoadedGame)
-                return;
-
-            ReceiveKeyPress(e.Button, Config.Controller);
-        }
-
-        /// <summary>The method invoked when the player presses a controller trigger button.</summary>
-        /// <param name="sender">The event sender.</param>
-        /// <param name="e">The event arguments.</param>
-        private void ControlEvents_ControllerButtonPressed(object sender, ButtonPressedEventArgs e)
-        {
-            if (!Game1.hasLoadedGame)
-                return;
-
-            ReceiveKeyPress(e.Button, Config.Controller);
-        }
 
         /****
         ** Methods
@@ -80,21 +56,28 @@ namespace EmptyHands
         /// <typeparam name="TSButton"></typeparam>
         /// <param name="key">The pressed input.</param>
         /// <param name="map">The configured input mapping.</param>
-        private void ReceiveKeyPress<TSButton>(TSButton key, InputMapConfiguration<TSButton> map)
+        /// <returns>Returns whether the key was handled.</returns>
+        private bool ReceiveKeyPress<TSButton>(TSButton key, InputMapConfiguration<TSButton> map)
         {
             if (!map.IsValidKey(key))
-                return;
+                return false;
 
             // perform bound action
             try
             {
                 if (key.Equals(map.SetToNothing))
+                {
                     UnsetActiveItem();
+                    return true;
+                }
+
+                return false;
             }
             catch (Exception ex)
             {
                 Monitor.Log($"Something went wrong handling input '{key}':\n{ex}", LogLevel.Error);
                 Game1.addHUDMessage(new HUDMessage("Huh. Something went wrong handling your input. The error log has the technical details.", HUDMessage.error_type));
+                return true;
             }
         }
 

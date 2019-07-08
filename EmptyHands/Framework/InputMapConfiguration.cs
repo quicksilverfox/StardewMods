@@ -1,6 +1,6 @@
 using System.Linq;
 
-namespace Pathoschild.Stardew.EmptyHands.Framework
+namespace EmptyHands.Framework
 {
     /// <summary>The input mapping configuration.</summary>
     /// <typeparam name="T">The control type.</typeparam>
