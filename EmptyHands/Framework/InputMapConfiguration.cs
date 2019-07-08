@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace EmptyHands.Framework
 {
     /// <summary>The input mapping configuration.</summary>
@@ -21,12 +19,6 @@ namespace EmptyHands.Framework
         public bool IsValidKey(T key)
         {
             return key != null && !key.Equals(default(T));
-        }
-
-        /// <summary>Get whether any keys are configured.</summary>
-        public bool HasAny()
-        {
-            return new[] { SetToNothing }.Any(IsValidKey);
         }
     }
 }
