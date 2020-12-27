@@ -147,8 +147,8 @@ namespace NewGamePlus
             if (Helper.Reflection.GetMethod((Game1.getLocationFromName("Town") as Town), "checkJojaCompletePrerequisite").Invoke<Boolean>()) Config.SetFlag("ccJoja", true);
             if (Game1.player.hasCompletedCommunityCenter()) Config.SetFlag("ccJunimo", true);
 
-            Config.SetFlagIfGreater("grandpaScore", ((Farm)Game1.getLocationFromName("Farm")).grandpaScore);
-            Config.SetFlagIfGreater("money", Game1.player.money);
+            Config.SetFlagIfGreater("grandpaScore", ((Farm)Game1.getLocationFromName("Farm")).grandpaScore.Get());
+            Config.SetFlagIfGreater("money", Game1.player.Money);
             if (Game1.player.achievements.Contains(34)) Config.SetFlag("fullShipment", true);
             if (Game1.player.mailReceived.Contains("QiChallengeComplete")) Config.SetFlag("QiChallengeComplete", true);
             if (AdventureGuild.areAllMonsterSlayerQuestsComplete()) Config.SetFlag("areAllMonsterSlayerQuestsComplete", true);
@@ -177,7 +177,7 @@ namespace NewGamePlus
                         Game1.player.maxHealth += 25;
 
                     Game1.player.health = Game1.player.maxHealth;
-                    Monitor.Log("Awarding profession: " + profession, LogLevel.Trace);
+                    Monitor.Log("NG+: Awarding profession: " + profession, LogLevel.Info);
                 }
             }
 
@@ -198,7 +198,7 @@ namespace NewGamePlus
         #endregion
 
         #region Experience
-        /// <summary>Iterate over known cooking recipes and award ones player does not have yet.</summary>
+        /// <summary>Iterate over skills and award experience.</summary>
         private void AwardExperience()
         {
             for (int i = 0; i < 6; i++)
@@ -268,13 +268,17 @@ namespace NewGamePlus
         /// <summary>Iterate over current crafting recipes and save new ones as known.</summary>
         private void SaveCraftingRecipes()
         {
+            int counter = 0;
             foreach (String recipe in Game1.player.craftingRecipes.Keys)
             {
                 if (!Config.CraftingRecipes.Contains(recipe))
                 {
                     Config.CraftingRecipes.Add(recipe);
+                    counter++;
                 }
             }
+            if (counter > 0)
+                Monitor.Log($"NG+: Awarding {counter} crafting recipes.", LogLevel.Info);
         }
         #endregion
 
@@ -282,13 +286,17 @@ namespace NewGamePlus
         /// <summary>Iterate over known cooking recipes and award ones player does not have yet.</summary>
         private void AwardCookingRecipes()
         {
+            int counter = 0;
             foreach (String recipe in Config.CookingRecipes)
             {
                 if (!Game1.player.cookingRecipes.ContainsKey(recipe))
                 {
                     Game1.player.cookingRecipes.Add(recipe, 0);
+                    counter++;
                 }
             }
+            if (counter > 0)
+                Monitor.Log($"NG+: Awarding {counter} cooking recipes.", LogLevel.Info);
         }
 
         /// <summary>Iterate over current cooking recipes and save new ones as known.</summary>
@@ -305,7 +313,7 @@ namespace NewGamePlus
         #endregion
 
         #region NewGame
-        /// <summary> Five player some starting stuff. Only used for a freshly started games. </summary>
+        /// <summary> Give player some starting stuff. Only used for freshly started games. </summary>
         private void AwardNewGame()
         {
             //Monitor.Log("Awarding new game stuff...", LogLevel.Trace);
@@ -315,18 +323,18 @@ namespace NewGamePlus
                 {
                     UpgradeTool("Watering Can");
                     UpgradeTool("Hoe");
-                    Monitor.Log("Local Legend: Awarding a farming tools upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Local Legend - Awarding a farming tools upgrade for a new game.", LogLevel.Info);
                 }
                 if (Config.GetFlagBoolean("ccJoja"))
                 {
                     UpgradeTool("Axe");
                     UpgradeTool("Pickaxe");
-                    Monitor.Log("Joja Co. Member Of The Year: Awarding a gathering tools upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Joja Co. Member Of The Year - Awarding a gathering tools upgrade for a new game.", LogLevel.Info);
                 }
                 if (Config.GetFlagBoolean("fullShipment"))
                 {
                     Game1.player.increaseBackpackSize(12);
-                    Monitor.Log("Full Shipment: Awarding backpack upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Full Shipment - Awarding backpack upgrade for a new game.", LogLevel.Info);
                 }
             }
             if (Config.GetConfig("newgame_assets"))
@@ -334,8 +342,8 @@ namespace NewGamePlus
                 int moneyBonus = decimal.ToInt32(Config.GetFlagDecimal("money") / 1000);
                 if (moneyBonus > 0)
                 {
-                    Game1.player.money += moneyBonus;
-                    Monitor.Log($"Hoarder: Awarding {moneyBonus} money for a new game.", LogLevel.Info);
+                    Game1.player.Money += moneyBonus;
+                    Monitor.Log($"NG+: Hoarder - Awarding {moneyBonus}g for a new game.", LogLevel.Info);
                 }
                 if (decimal.ToInt32(Config.GetFlagDecimal("grandpaScore")) == 4)
                 {
@@ -345,21 +353,21 @@ namespace NewGamePlus
                     Game1.player.addItemToInventory(new StardewValley.Object(631, 1));
                     Game1.player.addItemToInventory(new StardewValley.Object(632, 1));
                     Game1.player.addItemToInventory(new StardewValley.Object(633, 1));
-                    Monitor.Log("Perfection: Awarding a set of the tree saplings for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Perfection - Awarding a set of fruit tree saplings for a new game.", LogLevel.Info);
                 }
                 // Burglar's Ring for "Qi's Challenge"
                 if (Config.GetFlagBoolean("QiChallengeComplete"))
                 {
                     Game1.player.leftRing.Value = new Ring(526);
                     Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
-                    Monitor.Log("Qi's Challenge: Awarding the Burglar's Ring for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Qi's Challenge - Awarding the Burglar's Ring for a new game.", LogLevel.Info);
                 }
                 // Iridium Band for "Protector Of The Valley"
                 if (Config.GetFlagBoolean("areAllMonsterSlayerQuestsComplete"))
                 {
                     Game1.player.leftRing.Value = new Ring(527);
                     Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
-                    Monitor.Log("Protector Of The Valley: Awarding the Iridium Band for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Protector Of The Valley - Awarding the Iridium Band for a new game.", LogLevel.Info);
                 }
                 // TODO:
                 // Bonus 2 starting hearts with everyone for "Popular"?

@@ -42,21 +42,22 @@ namespace NewGamePlus.Framework
         public void SetFlag(string key, object value)
         {
             flags.Remove(key);
-            flags.Add(key, value);
+            if (value != null)
+                flags.Add(key, Base64Encode(value.ToString()));
         }
 
         public void SetFlagIfGreater(string key, decimal value)
         {
             if (flags.ContainsKey(key))
-                SetFlag(key, Math.Max(value, int.Parse(GetFlag(key, 0).ToString())));
+                SetFlag(key, Math.Max(value, int.Parse(GetFlag(key, "0"))));
             else
                 SetFlag(key, value);
         }
 
-        public object GetFlag(string key, object def = null)
+        public string GetFlag(string key, string def = null)
         {
             if (flags.ContainsKey(key))
-                return flags[key];
+                return Base64Decode(flags[key].ToString());
             return def;
         }
 
@@ -64,7 +65,7 @@ namespace NewGamePlus.Framework
         {
             decimal ret = dflt;
             if (flags.ContainsKey(key))
-                decimal.TryParse(flags[key].ToString(), out ret);
+                decimal.TryParse(Base64Decode(flags[key].ToString()), out ret);
             return ret;
         }
 
@@ -72,8 +73,20 @@ namespace NewGamePlus.Framework
         {
             bool ret = dflt;
             if (flags.ContainsKey(key))
-                return bool.TryParse(flags[key].ToString(), out ret);
+                return bool.TryParse(Base64Decode(flags[key].ToString()), out ret);
             return ret;
+        }
+
+        public static string Base64Encode(string plainText)
+        {
+            var plainTextBytes = System.Text.Encoding.UTF8.GetBytes(plainText);
+            return System.Convert.ToBase64String(plainTextBytes);
+        }
+
+        public static string Base64Decode(string base64EncodedData)
+        {
+            var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
+            return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
         }
     }
 }
