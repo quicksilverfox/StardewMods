@@ -1,55 +1,85 @@
 ﻿using System;
+using System.Collections.Generic;
+using NewGamePlus.Framework;
 using StardewModdingAPI;
 using StardewModdingAPI.Events;
 using StardewValley;
-using System.Collections.Generic;
+using StardewValley.Locations;
 using StardewValley.Menus;
 using StardewValley.Objects;
-using StardewValley.Locations;
-using NewGamePlus.Util;
 
 namespace NewGamePlus
 {
-    public class NewGamePlus : Mod
+    /// <summary>The mod entry class.</summary>
+    public class ModEntry : Mod
     {
-        public static new IModHelper Helper;
-        public static NewGamePlusConfig ModConfig { get; private set; }
+        /*********
+        ** Fields
+        *********/
+        /// <summary>The mod configuration.</summary>
+        private ModConfig Config;
+
 
         /*********
         ** Public methods
         *********/
-        /// <summary>Initialise the mod.</summary>
-        /// <param name="helper">Provides methods for interacting with the mod directory, such as read/writing a config file or custom JSON files.</param>
+        /// <summary>The mod entry point, called after the mod is first loaded.</summary>
+        /// <param name="helper">Provides simplified APIs for writing mods.</param>
         public override void Entry(IModHelper helper)
         {
-            Helper = helper;
-            ModConfig = helper.ReadConfig<NewGamePlusConfig>();
+            Config = helper.ReadConfig<ModConfig>();
 
-            RegisterGameEvents();
+            helper.Events.GameLoop.DayStarted += OnDayStarted;
+            helper.Events.GameLoop.Saved += OnSaved;
+            helper.Events.Display.MenuChanged += OnMenuChanged;
         }
 
+
+        /*********
+        ** Private methods
+        *********/
         #region Events
-        /// <summary> Registers event handlers for mod functions. </summary>
-        private void RegisterGameEvents()
+        /// <summary>Raised after the game begins a new day (including when the player loads a save).</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnDayStarted(object sender, DayStartedEventArgs e)
         {
-            //Monitor.Log("Registering game events...", LogLevel.Trace);
+            this.AwardPlayer(); // check if something is missing
+            this.SaveAwards(); // save achievements on load, so load & quit is enough to update awards
+            this.TravelingMerchantBonus(); // if junimo way is done, travelling merchant always have at least one item required for community center
+        }
 
-            TimeEvents.AfterDayStarted += AwardPlayer; // When game is loaded, check if something is missing.
-            TimeEvents.AfterDayStarted += SaveAwards; // Save achievements upon load, this way load and quit would be enough to update awards.
-            TimeEvents.AfterDayStarted += TravelingMerchantBonus; // If junimo way is done, travelling merchant always have at least one item required for community center
+        /// <summary>Raised after the game finishes writing data to the save file (except the initial save creation).</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnSaved(object sender, SavedEventArgs e)
+        {
+            this.SaveAwards(); // When day is saved, save achievements.
+        }
 
-            SaveEvents.AfterSave += SaveAwards; // When day is saved, save achievements.
-
-            MenuEvents.MenuClosed += MenuClosed; // Level up menu neds fix to work correctly with this.
-
-            //Monitor.Log("Game events registered.", LogLevel.Trace);
+        /// <summary>Raised after a game menu is opened, closed, or replaced.</summary>
+        /// <param name="sender">The event sender.</param>
+        /// <param name="e">The event arguments.</param>
+        private void OnMenuChanged(object sender, MenuChangedEventArgs e)
+        {
+            // clean up possible duplicate professions, since we don't filter what player can pick up
+            if (e.OldMenu is LevelUpMenu && e.NewMenu == null)
+            {
+                List<int> cleaned = new List<int>();
+                foreach (int profession in Game1.player.professions)
+                {
+                    if (!cleaned.Contains(profession))
+                        cleaned.Add(profession);
+                }
+                Game1.player.professions.Set(cleaned);
+            }
         }
 
         /// <summary> If player has finished junimo way of refurbishing the Community Center, at future playthroughs Travelling Merchant would always have at least one item fitting for some bundle, if any. </summary>
         // Due to network nature this way does not work anymore.
-        private void TravelingMerchantBonus(object sender, EventArgs args)
+        private void TravelingMerchantBonus()
         {
-            //if (!ModConfig.GetFlagBoolean("ccJunimo") || Game1.player.mailReceived.Contains("JojaMember")) return; // requires full cc completeon record and not being a joja member
+            //if (!Config.GetFlagBoolean("ccJunimo") || Game1.player.mailReceived.Contains("JojaMember")) return; // requires full cc completeon record and not being a joja member
             //if (!(Game1.getLocationFromName("Forest") as Forest).travelingMerchantDay) return; // merchant is away
             //CommunityCenter communityCenter = Game1.getLocationFromName("CommunityCenter") as CommunityCenter;
             //if (communityCenter.areAllAreasComplete()) return; // cc is completed
@@ -90,23 +120,23 @@ namespace NewGamePlus
         }
 
         /// <summary>Check what player is missing.</summary>
-        private void AwardPlayer(object sender, EventArgs args)
+        private void AwardPlayer()
         {
             if (Game1.stats.DaysPlayed == 0) return; // freshly created game before init cutscene - it would be called once again afterwards
 
-            if (ModConfig.GetConfig("professions")) AwardProfessions();
-            if (ModConfig.GetConfig("stardrops")) AwardStardrops();
-            if (ModConfig.GetConfig("crafting_recipes")) AwardCraftingRecipes();
-            if (ModConfig.GetConfig("cooking_recipes")) AwardCookingRecipes();
-            if (ModConfig.GetConfig("experience")) AwardExperience();
-            
+            if (Config.GetConfig("professions")) AwardProfessions();
+            if (Config.GetConfig("stardrops")) AwardStardrops();
+            if (Config.GetConfig("crafting_recipes")) AwardCraftingRecipes();
+            if (Config.GetConfig("cooking_recipes")) AwardCookingRecipes();
+            if (Config.GetConfig("experience")) AwardExperience();
+
             // Some bonuses only can be granted on a new game start. Mostly matherial rewards.
             if (Game1.stats.DaysPlayed == 1)
                 AwardNewGame();
         }
 
         /// <summary>Update known achievements and save them into config.</summary>
-        private void SaveAwards(object sender, EventArgs args)
+        private void SaveAwards()
         {
             SaveProfessions();
             SaveStardrops();
@@ -114,31 +144,16 @@ namespace NewGamePlus
             SaveCookingRecipes();
             SaveExperience();
 
-            if (Helper.Reflection.GetMethod((Game1.getLocationFromName("Town") as Town), "checkJojaCompletePrerequisite").Invoke<Boolean>()) ModConfig.SetFlag("ccJoja", true);
-            if (Game1.player.hasCompletedCommunityCenter()) ModConfig.SetFlag("ccJunimo", true);
+            if (Helper.Reflection.GetMethod((Game1.getLocationFromName("Town") as Town), "checkJojaCompletePrerequisite").Invoke<Boolean>()) Config.SetFlag("ccJoja", true);
+            if (Game1.player.hasCompletedCommunityCenter()) Config.SetFlag("ccJunimo", true);
 
-            ModConfig.SetFlagIfGreater("grandpaScore", (Game1.getLocationFromName("Farm") as Farm).grandpaScore);
-            ModConfig.SetFlagIfGreater("money", Game1.player.money);
-            if (Game1.player.achievements.Contains(34)) ModConfig.SetFlag("fullShipment", true);
-            if (Game1.player.mailReceived.Contains("QiChallengeComplete")) ModConfig.SetFlag("QiChallengeComplete", true);
-            if (StardewValley.Locations.AdventureGuild.areAllMonsterSlayerQuestsComplete()) ModConfig.SetFlag("areAllMonsterSlayerQuestsComplete", true);
+            Config.SetFlagIfGreater("grandpaScore", ((Farm)Game1.getLocationFromName("Farm")).grandpaScore);
+            Config.SetFlagIfGreater("money", Game1.player.money);
+            if (Game1.player.achievements.Contains(34)) Config.SetFlag("fullShipment", true);
+            if (Game1.player.mailReceived.Contains("QiChallengeComplete")) Config.SetFlag("QiChallengeComplete", true);
+            if (AdventureGuild.areAllMonsterSlayerQuestsComplete()) Config.SetFlag("areAllMonsterSlayerQuestsComplete", true);
 
-            Helper.WriteConfig(ModConfig);
-        }
-
-        /// <summary>Clean up possible duplicate professions, since we don't filter what player can pick up.</summary>
-        private void MenuClosed(object sender, EventArgsClickableMenuClosed args)
-        {
-            if (args.PriorMenu is LevelUpMenu)
-            {
-                List<int> cleaned = new List<int>();
-                foreach (int profession in Game1.player.professions)
-                {
-                    if (!cleaned.Contains(profession))
-                        cleaned.Add(profession);
-                }
-                Game1.player.professions = cleaned;
-            }
+            Helper.WriteConfig(Config);
         }
         #endregion
 
@@ -146,7 +161,7 @@ namespace NewGamePlus
         /// <summary>Iterate over known professions and award ones player does not have yet.</summary>
         private void AwardProfessions()
         {
-            foreach (int profession in ModConfig.Professions)
+            foreach (int profession in Config.Professions)
             {
                 if (!Game1.player.professions.Contains(profession) &&
                     (profession % 6 > 1
@@ -156,14 +171,11 @@ namespace NewGamePlus
                     Game1.player.professions.Add(profession);
 
                     // hardcode... technically, this is from LevelUpMenu.getImmediateProfessionPerk
-                    if (profession == StardewValley.Farmer.fighter)
-                    {
+                    if (profession == Farmer.fighter)
                         Game1.player.maxHealth += 15;
-                    }
-                    if (profession == StardewValley.Farmer.defender)
-                    {
+                    if (profession == Farmer.defender)
                         Game1.player.maxHealth += 25;
-                    }
+
                     Game1.player.health = Game1.player.maxHealth;
                     Monitor.Log("Awarding profession: " + profession, LogLevel.Trace);
                 }
@@ -176,9 +188,9 @@ namespace NewGamePlus
         {
             foreach (int profession in Game1.player.professions)
             {
-                if (!ModConfig.Professions.Contains(profession))
+                if (!Config.Professions.Contains(profession))
                 {
-                    ModConfig.Professions.Add(profession);
+                    Config.Professions.Add(profession);
                     Monitor.Log("Saving profession: " + profession, LogLevel.Trace);
                 }
             }
@@ -191,9 +203,9 @@ namespace NewGamePlus
         {
             for (int i = 0; i < 6; i++)
             {
-                if (Game1.player.experiencePoints[i] < ModConfig.Experience[i])
+                if (Game1.player.experiencePoints[i] < Config.Experience[i])
                 {
-                    Game1.player.gainExperience(i, ModConfig.Experience[i] - Game1.player.experiencePoints[i]);
+                    Game1.player.gainExperience(i, Config.Experience[i] - Game1.player.experiencePoints[i]);
                 }
             }
         }
@@ -203,7 +215,7 @@ namespace NewGamePlus
         {
             for (int i = 0; i < 6; i++)
             {
-                ModConfig.Experience[i] = Math.Max(Game1.player.experiencePoints[i], ModConfig.Experience[i]);
+                Config.Experience[i] = Math.Max(Game1.player.experiencePoints[i], Config.Experience[i]);
             }
         }
         #endregion
@@ -215,7 +227,7 @@ namespace NewGamePlus
         /// <summary>Give all known stardrops.</summary>
         private void AwardStardrops()
         {
-            foreach (String stardrop in ModConfig.Stardrops)
+            foreach (String stardrop in Config.Stardrops)
             {
                 if (Array.IndexOf(Stardrops, stardrop) != -1 && !Game1.player.hasOrWillReceiveMail(stardrop))
                 {
@@ -224,7 +236,7 @@ namespace NewGamePlus
                 }
             }
 
-            Game1.player.Stamina = (float)Game1.player.MaxStamina;
+            Game1.player.Stamina = Game1.player.MaxStamina;
         }
 
         /// <summary>Save known stardrop list.</summary>
@@ -232,9 +244,9 @@ namespace NewGamePlus
         {
             foreach (String stardrop in Stardrops)
             {
-                if (Game1.player.mailReceived.Contains(stardrop) && !ModConfig.Stardrops.Contains(stardrop))
+                if (Game1.player.mailReceived.Contains(stardrop) && !Config.Stardrops.Contains(stardrop))
                 {
-                    ModConfig.Stardrops.Add(stardrop);
+                    Config.Stardrops.Add(stardrop);
                 }
             }
         }
@@ -244,7 +256,7 @@ namespace NewGamePlus
         /// <summary>Iterate over known crafting recipes and award ones player does not have yet.</summary>
         private void AwardCraftingRecipes()
         {
-            foreach (String recipe in ModConfig.CraftingRecipes)
+            foreach (String recipe in Config.CraftingRecipes)
             {
                 if (!Game1.player.craftingRecipes.ContainsKey(recipe))
                 {
@@ -258,9 +270,9 @@ namespace NewGamePlus
         {
             foreach (String recipe in Game1.player.craftingRecipes.Keys)
             {
-                if (!ModConfig.CraftingRecipes.Contains(recipe))
+                if (!Config.CraftingRecipes.Contains(recipe))
                 {
-                    ModConfig.CraftingRecipes.Add(recipe);
+                    Config.CraftingRecipes.Add(recipe);
                 }
             }
         }
@@ -270,7 +282,7 @@ namespace NewGamePlus
         /// <summary>Iterate over known cooking recipes and award ones player does not have yet.</summary>
         private void AwardCookingRecipes()
         {
-            foreach (String recipe in ModConfig.CookingRecipes)
+            foreach (String recipe in Config.CookingRecipes)
             {
                 if (!Game1.player.cookingRecipes.ContainsKey(recipe))
                 {
@@ -284,9 +296,9 @@ namespace NewGamePlus
         {
             foreach (String recipe in Game1.player.cookingRecipes.Keys)
             {
-                if (!ModConfig.CookingRecipes.Contains(recipe))
+                if (!Config.CookingRecipes.Contains(recipe))
                 {
-                    ModConfig.CookingRecipes.Add(recipe);
+                    Config.CookingRecipes.Add(recipe);
                 }
             }
         }
@@ -297,53 +309,53 @@ namespace NewGamePlus
         private void AwardNewGame()
         {
             //Monitor.Log("Awarding new game stuff...", LogLevel.Trace);
-            if (ModConfig.GetConfig("newgame_tools"))
+            if (Config.GetConfig("newgame_tools"))
             {
-                if (ModConfig.GetFlagBoolean("ccJunimo"))
+                if (Config.GetFlagBoolean("ccJunimo"))
                 {
                     UpgradeTool("Watering Can");
                     UpgradeTool("Hoe");
                     Monitor.Log("Local Legend: Awarding a farming tools upgrade for a new game.", LogLevel.Info);
                 }
-                if (ModConfig.GetFlagBoolean("ccJoja"))
+                if (Config.GetFlagBoolean("ccJoja"))
                 {
                     UpgradeTool("Axe");
                     UpgradeTool("Pickaxe");
                     Monitor.Log("Joja Co. Member Of The Year: Awarding a gathering tools upgrade for a new game.", LogLevel.Info);
                 }
-                if (ModConfig.GetFlagBoolean("fullShipment"))
+                if (Config.GetFlagBoolean("fullShipment"))
                 {
                     Game1.player.increaseBackpackSize(12);
                     Monitor.Log("Full Shipment: Awarding backpack upgrade for a new game.", LogLevel.Info);
                 }
             }
-            if (ModConfig.GetConfig("newgame_assets"))
+            if (Config.GetConfig("newgame_assets"))
             {
-                int moneyBonus = Decimal.ToInt32(ModConfig.GetFlagDecimal("money", 0) / 1000);
+                int moneyBonus = decimal.ToInt32(Config.GetFlagDecimal("money") / 1000);
                 if (moneyBonus > 0)
                 {
                     Game1.player.money += moneyBonus;
                     Monitor.Log($"Hoarder: Awarding {moneyBonus} money for a new game.", LogLevel.Info);
                 }
-                if (Decimal.ToInt32(ModConfig.GetFlagDecimal("grandpaScore", 0)) == 4)
+                if (decimal.ToInt32(Config.GetFlagDecimal("grandpaScore")) == 4)
                 {
-                    Game1.player.addItemToInventory((Item)new StardewValley.Object(628, 1));
-                    Game1.player.addItemToInventory((Item)new StardewValley.Object(629, 1));
-                    Game1.player.addItemToInventory((Item)new StardewValley.Object(630, 1));
-                    Game1.player.addItemToInventory((Item)new StardewValley.Object(631, 1));
-                    Game1.player.addItemToInventory((Item)new StardewValley.Object(632, 1));
-                    Game1.player.addItemToInventory((Item)new StardewValley.Object(633, 1));
+                    Game1.player.addItemToInventory(new StardewValley.Object(628, 1));
+                    Game1.player.addItemToInventory(new StardewValley.Object(629, 1));
+                    Game1.player.addItemToInventory(new StardewValley.Object(630, 1));
+                    Game1.player.addItemToInventory(new StardewValley.Object(631, 1));
+                    Game1.player.addItemToInventory(new StardewValley.Object(632, 1));
+                    Game1.player.addItemToInventory(new StardewValley.Object(633, 1));
                     Monitor.Log("Perfection: Awarding a set of the tree saplings for a new game.", LogLevel.Info);
                 }
                 // Burglar's Ring for "Qi's Challenge"
-                if (ModConfig.GetFlagBoolean("QiChallengeComplete"))
+                if (Config.GetFlagBoolean("QiChallengeComplete"))
                 {
                     Game1.player.leftRing.Value = new Ring(526);
                     Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
                     Monitor.Log("Qi's Challenge: Awarding the Burglar's Ring for a new game.", LogLevel.Info);
                 }
                 // Iridium Band for "Protector Of The Valley"
-                if (ModConfig.GetFlagBoolean("areAllMonsterSlayerQuestsComplete"))
+                if (Config.GetFlagBoolean("areAllMonsterSlayerQuestsComplete"))
                 {
                     Game1.player.leftRing.Value = new Ring(527);
                     Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);

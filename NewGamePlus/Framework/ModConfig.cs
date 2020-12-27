@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace NewGamePlus
+namespace NewGamePlus.Framework
 {
-    public class NewGamePlusConfig
+    internal class ModConfig
     {
-        public Dictionary<string, bool> config = new Dictionary<string, bool>()
+        /*********
+        ** Accessors
+        *********/
+        public readonly Dictionary<string, bool> Config = new Dictionary<string, bool>
         {
             ["professions"] = true,
             ["experience"] = false,
@@ -19,24 +19,27 @@ namespace NewGamePlus
             ["newgame_money"] = true,
             ["newgame_assets"] = true,
         };
-        
-        public bool GetConfig(string key, bool defValue = true)
-        {
-            if (config.ContainsKey(key))
-                return config[key];
-            return defValue;
-        }
 
-        public string separator = "DO NOT EDIT FOLLOWING LINES MANUALLY";
-
-        public Dictionary<string, Object> flags = new Dictionary<string, Object>();
+        // DO NOT EDIT FOLLOWING LINES MANUALLY
+        public Dictionary<string, object> flags = new Dictionary<string, object>();
         public SortedSet<int> Professions { get; set; } = new SortedSet<int>();
         public int[] Experience = new int[6];
         public List<string> Stardrops { get; set; } = new List<string>();
         public List<string> CraftingRecipes { get; set; } = new List<string>();
         public List<string> CookingRecipes { get; set; } = new List<string>();
 
-        public void SetFlag(string key, Object value)
+
+        /*********
+        ** Public methods
+        *********/
+        public bool GetConfig(string key, bool defValue = true)
+        {
+            if (Config.ContainsKey(key))
+                return Config[key];
+            return defValue;
+        }
+
+        public void SetFlag(string key, object value)
         {
             flags.Remove(key);
             flags.Add(key, value);
@@ -50,7 +53,7 @@ namespace NewGamePlus
                 SetFlag(key, value);
         }
 
-        public Object GetFlag(string key, Object def = null)
+        public object GetFlag(string key, object def = null)
         {
             if (flags.ContainsKey(key))
                 return flags[key];
@@ -69,7 +72,7 @@ namespace NewGamePlus
         {
             bool ret = dflt;
             if (flags.ContainsKey(key))
-                return Boolean.TryParse(flags[key].ToString(), out ret);
+                return bool.TryParse(flags[key].ToString(), out ret);
             return ret;
         }
     }
