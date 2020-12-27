@@ -1,7 +1,7 @@
 ﻿{
   "Name": "Empty Hands",
   "Author": "Quicksilver Fox",
-  "Version": "1.1.0",
+  "Version": "1.1.1",
   "Description": "Don't want to scare off people by swinging your scythe under their noses? Keep your hands empty!",
   "UniqueID": "QuicksilverFox.EmptyHands",
   "EntryDll": "EmptyHands.dll",
