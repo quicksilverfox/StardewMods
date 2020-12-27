@@ -20,7 +20,7 @@ namespace NewGamePlus.Framework
             ["newgame_assets"] = true,
         };
 
-        // DO NOT EDIT FOLLOWING LINES MANUALLY
+        public string Separator = "FOLLOWING LINES ARE NOT MEANT TO BE EDITED MANUALLY";
         public Dictionary<string, object> flags = new Dictionary<string, object>();
         public SortedSet<int> Professions { get; set; } = new SortedSet<int>();
         public int[] Experience = new int[6];

@@ -278,7 +278,7 @@ namespace NewGamePlus
                 }
             }
             if (counter > 0)
-                Monitor.Log($"NG+: Awarding {counter} crafting recipes.", LogLevel.Info);
+                Monitor.Log($"NG+: awarding {counter} crafting recipes.", LogLevel.Info);
         }
         #endregion
 
@@ -296,7 +296,7 @@ namespace NewGamePlus
                 }
             }
             if (counter > 0)
-                Monitor.Log($"NG+: Awarding {counter} cooking recipes.", LogLevel.Info);
+                Monitor.Log($"NG+: awarding {counter} cooking recipes.", LogLevel.Info);
         }
 
         /// <summary>Iterate over current cooking recipes and save new ones as known.</summary>
@@ -323,27 +323,28 @@ namespace NewGamePlus
                 {
                     UpgradeTool("Watering Can");
                     UpgradeTool("Hoe");
-                    Monitor.Log("NG+: Local Legend - Awarding a farming tools upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Local Legend - awarding farming tools upgrade for a new game.", LogLevel.Info);
                 }
                 if (Config.GetFlagBoolean("ccJoja"))
                 {
                     UpgradeTool("Axe");
                     UpgradeTool("Pickaxe");
-                    Monitor.Log("NG+: Joja Co. Member Of The Year - Awarding a gathering tools upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Joja Co. Member Of The Year - awarding gathering tools upgrade for a new game.", LogLevel.Info);
                 }
                 if (Config.GetFlagBoolean("fullShipment"))
                 {
                     Game1.player.increaseBackpackSize(12);
-                    Monitor.Log("NG+: Full Shipment - Awarding backpack upgrade for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Full Shipment - awarding backpack upgrade for a new game.", LogLevel.Info);
                 }
             }
             if (Config.GetConfig("newgame_assets"))
             {
+                // 0.1% of maximum held money is awarded
                 int moneyBonus = decimal.ToInt32(Config.GetFlagDecimal("money") / 1000);
                 if (moneyBonus > 0)
                 {
                     Game1.player.Money += moneyBonus;
-                    Monitor.Log($"NG+: Hoarder - Awarding {moneyBonus}g for a new game.", LogLevel.Info);
+                    Monitor.Log($"NG+: Hoarder - awarding {moneyBonus}g for a new game.", LogLevel.Info);
                 }
                 if (decimal.ToInt32(Config.GetFlagDecimal("grandpaScore")) == 4)
                 {
@@ -353,27 +354,27 @@ namespace NewGamePlus
                     Game1.player.addItemToInventory(new StardewValley.Object(631, 1));
                     Game1.player.addItemToInventory(new StardewValley.Object(632, 1));
                     Game1.player.addItemToInventory(new StardewValley.Object(633, 1));
-                    Monitor.Log("NG+: Perfection - Awarding a set of fruit tree saplings for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Perfection - awarding a set of fruit tree saplings for a new game.", LogLevel.Info);
                 }
                 // Burglar's Ring for "Qi's Challenge"
                 if (Config.GetFlagBoolean("QiChallengeComplete"))
                 {
-                    Game1.player.leftRing.Value = new Ring(526);
+                    Game1.player.leftRing.Value = new Ring(526); // Burglar's Ring
                     Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
-                    Monitor.Log("NG+: Qi's Challenge - Awarding the Burglar's Ring for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Qi's Challenge - awarding the Burglar's Ring for a new game.", LogLevel.Info);
                 }
                 // Iridium Band for "Protector Of The Valley"
                 if (Config.GetFlagBoolean("areAllMonsterSlayerQuestsComplete"))
                 {
-                    Game1.player.leftRing.Value = new Ring(527);
+                    Game1.player.leftRing.Value = new Ring(527); // Iridium Band
                     Game1.player.leftRing.Value.onEquip(Game1.player, Game1.player.currentLocation);
-                    Monitor.Log("NG+: Protector Of The Valley - Awarding the Iridium Band for a new game.", LogLevel.Info);
+                    Monitor.Log("NG+: Protector Of The Valley - awarding the Iridium Band for a new game.", LogLevel.Info);
                 }
                 // TODO:
                 // Bonus 2 starting hearts with everyone for "Popular"?
                 // Statue of Perfection for "Fector's Challenge"?
             }
-            //Monitor.Log("Awarding new game stuff - completed.", LogLevel.Trace);
+            Monitor.Log("NG+: Awarding new game stuff completed.", LogLevel.Trace);
         }
 
         private void UpgradeTool(string tool)

@@ -76,7 +76,8 @@ namespace EmptyHands
         /// <summary>Sets active item to an impossible value.</summary>
         private void UnsetActiveItem()
         {
-            Game1.player.CurrentToolIndex = int.MaxValue;
+            if (!Game1.player.IsBusyDoingSomething())
+                Game1.player.CurrentToolIndex = int.MaxValue;
         }
     }
 }
